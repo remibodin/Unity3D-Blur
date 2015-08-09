@@ -62,3 +62,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.csproj
+*.sln
+UnityProject/UnityProject.userprefs
