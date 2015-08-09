@@ -4,6 +4,7 @@ uniform sampler2D _MainTex;
 uniform float4 _MainTex_TexelSize;
 uniform float _Sigma;
 uniform float _KernelSize;
+uniform float4 _DirectionPass;
 
 struct v2f 
 { 
@@ -25,10 +26,10 @@ v2f vert (appdata_t v)
     return o; 
 }
 
-float g(float x, float y, float sigma)
+float g(float x, float sigma)
 {
-	float pi = 3.14159265f;	
-    return  1.0f / (2.0f * pi * sigma * sigma) * exp(-(x * x + y * y) / (2.0f * sigma * sigma));
+	float pi = 3.14159265f;
+	return  1.0f / (2.0f * pi * sigma * sigma) * exp(-(x * x) / (2.0f * sigma * sigma));
 }
 
 float4 frag (v2f i) : COLOR 
@@ -36,19 +37,18 @@ float4 frag (v2f i) : COLOR
 	float2 texCoord = i.uv;
 	float4 c = tex2D(_MainTex, texCoord);
 	
-	float4 o = c * g(0,0,_Sigma);
-	float sum = g(0,0,_Sigma);
+	float4 o = 0;
+	float sum = 0;
 	float2 uvOffset;
 	
-	for(int x = -_KernelSize / 2; x <= _KernelSize / 2; ++x)
-		for(int y = -_KernelSize / 2; y <= _KernelSize / 2; ++y)
-		{
-			uvOffset = texCoord;
-			uvOffset.x += x * _MainTex_TexelSize.x;
-			uvOffset.y += y * _MainTex_TexelSize.y;
-			o += tex2D(_MainTex, uvOffset) * g(x,y,_Sigma);
-			sum += g(x,y,_Sigma);
-		}
+	for(int kernelStep = -_KernelSize / 2; kernelStep <= _KernelSize / 2; ++kernelStep)
+	{
+		uvOffset = texCoord;
+		uvOffset.x += kernelStep * _MainTex_TexelSize.x * _DirectionPass.x ;
+		uvOffset.y += kernelStep * _MainTex_TexelSize.y * _DirectionPass.y ;
+		o += tex2D(_MainTex, uvOffset) * g(kernelStep,_Sigma);
+		sum += g(kernelStep,_Sigma);
+	}
 	o *= (1.0f / sum);
 	return o;
 } 
