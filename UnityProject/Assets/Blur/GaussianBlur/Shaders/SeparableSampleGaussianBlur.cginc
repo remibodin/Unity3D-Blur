@@ -32,7 +32,7 @@ float g(float x, float sigma)
 	return  1.0f / (2.0f * pi * sigma * sigma) * exp(-(x * x) / (2.0f * sigma * sigma));
 }
 
-float4 frag (v2f i) : COLOR 
+float4 frag (v2f i) : COLOR
 { 
 	float2 texCoord = i.uv;
 	float4 c = tex2D(_MainTex, texCoord);
@@ -40,14 +40,16 @@ float4 frag (v2f i) : COLOR
 	float4 o = 0;
 	float sum = 0;
 	float2 uvOffset;
+	float weight;
 	
-	for(int kernelStep = -_KernelSize / 2; kernelStep <= _KernelSize / 2; ++kernelStep)
+	for(int kernelStep = -_KernelSize / 2; kernelStep <= _KernelSize / 2; kernelStep += 2)
 	{
+		weight = g(kernelStep, _Sigma) + g(kernelStep+1, _Sigma);
 		uvOffset = texCoord;
-		uvOffset.x += kernelStep * _MainTex_TexelSize.x * _DirectionPass.x ;
-		uvOffset.y += kernelStep * _MainTex_TexelSize.y * _DirectionPass.y ;
-		o += tex2D(_MainTex, uvOffset) * g(kernelStep,_Sigma);
-		sum += g(kernelStep,_Sigma);
+		uvOffset.x += ((kernelStep+0.5f) * _MainTex_TexelSize.x * _DirectionPass.x);
+		uvOffset.y += ((kernelStep+0.5f) * _MainTex_TexelSize.y * _DirectionPass.y);
+		o += tex2D(_MainTex, uvOffset) * weight;
+		sum += weight;
 	}
 	o *= (1.0f / sum);
 	return o;

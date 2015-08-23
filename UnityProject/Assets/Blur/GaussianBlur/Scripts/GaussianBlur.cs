@@ -7,7 +7,8 @@ public class GaussianBlur : MonoBehaviour
 	public enum Algo
 	{
 		naive = 0,
-		separable = 1
+		separable = 1,
+		separable_sample = 2
 	}
 
 	public Algo algo;
@@ -25,6 +26,7 @@ public class GaussianBlur : MonoBehaviour
 		{
 			case Algo.naive: m_Shader = Shader.Find ("hidden/naive_gaussian_blur");break;
 			case Algo.separable: m_Shader = Shader.Find ("hidden/separable_gaussian_blur");break;
+			case Algo.separable_sample: m_Shader = Shader.Find ("hidden/separable_sample_gaussian_blur");break;
 		}
 		if (m_Shader.isSupported == false)
 		{
@@ -40,7 +42,7 @@ public class GaussianBlur : MonoBehaviour
 		m_Material.SetFloat ("_Sigma", sigma);
 		m_Material.SetFloat ("_KernelSize", kernelSize);
 
-		if (algo == Algo.separable) 
+		if (algo == Algo.separable || algo == Algo.separable_sample) 
 		{
 			RenderTexture tmpRt = RenderTexture.GetTemporary(input.width, input.height);
 			m_Material.SetVector ("_DirectionPass", new Vector4 (1, 0, 0, 0));
