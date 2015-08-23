@@ -118,10 +118,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1249014a496759a4db214aaf29caab05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  algo: 1
-  sigma: 10
-  kernelSize: 35
-  m_Shader: {fileID: 4800000, guid: d9d323fb4fd77194e8e9659922510df0, type: 3}
+  algo: 2
+  quality: 1
+  sigma: 5
 --- !u!81 &596643553
 AudioListener:
   m_ObjectHideFlags: 0

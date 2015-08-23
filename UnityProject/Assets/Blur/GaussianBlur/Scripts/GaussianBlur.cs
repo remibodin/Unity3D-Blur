@@ -6,43 +6,62 @@ public class GaussianBlur : MonoBehaviour
 {
 	public enum Algo
 	{
-		naive = 0,
-		separable = 1,
-		separable_sample = 2
+		NAIVE,
+		TWO_PASS,
+		TWO_PASS_LINEAR_SAMPLING
 	}
 
+	public enum Quality
+	{
+		LITTLE_KERNEL,
+		MEDIUM_KERNEL,
+		BIG_KERNEL
+	};
+
 	public Algo algo;
-	public float sigma = 1.5f;
-	public float kernelSize = 7f;
-
-	[SerializeField]
+	public Quality quality;
+	public float sigma = 10f;
+	
 	private Shader m_Shader;
-
 	private Material m_Material;
 
 	private void OnValidate()
 	{
+		Init ();
+	}
+
+	private void OnEnable()
+	{
+		Init ();
+	}
+
+	private void Init()
+	{
 		switch (algo) 
 		{
-			case Algo.naive: m_Shader = Shader.Find ("hidden/naive_gaussian_blur");break;
-			case Algo.separable: m_Shader = Shader.Find ("hidden/separable_gaussian_blur");break;
-			case Algo.separable_sample: m_Shader = Shader.Find ("hidden/separable_sample_gaussian_blur");break;
+			case Algo.NAIVE: m_Shader = Shader.Find ("hidden/naive_gaussian_blur");break;
+			case Algo.TWO_PASS: m_Shader = Shader.Find ("hidden/two_pass_gaussian_blur");break;
+			case Algo.TWO_PASS_LINEAR_SAMPLING: m_Shader = Shader.Find ("hidden/two_pass_linear_sampling_gaussian_blur");break;
 		}
 		if (m_Shader.isSupported == false)
 		{
 			enabled = false;
+			Debug.LogWarning ("Shader not supported");
 			return;
 		}
+		if (algo == Algo.NAIVE && quality == Quality.BIG_KERNEL) 
+		{
+			quality = Quality.MEDIUM_KERNEL;
+			Debug.LogWarning("Some graphic's driver crash with Algo.NAIVE and Quality.BIG_KERNEL !");
+		}
 		m_Material = new Material (m_Shader);
+		m_Material.EnableKeyword (quality.ToString ());
 	}
 
 	private void OnRenderImage(RenderTexture input, RenderTexture output)
 	{
-
 		m_Material.SetFloat ("_Sigma", sigma);
-		m_Material.SetFloat ("_KernelSize", kernelSize);
-
-		if (algo == Algo.separable || algo == Algo.separable_sample) 
+		if (algo == Algo.TWO_PASS || algo == Algo.TWO_PASS_LINEAR_SAMPLING) 
 		{
 			RenderTexture tmpRt = RenderTexture.GetTemporary(input.width, input.height);
 			m_Material.SetVector ("_DirectionPass", new Vector4 (1, 0, 0, 0));
@@ -55,5 +74,31 @@ public class GaussianBlur : MonoBehaviour
 		{
 			Graphics.Blit (input, output, m_Material);
 		}
+	}
+
+	private void OnGUI()
+	{
+		GUILayout.BeginVertical ("Box");
+
+		GUILayout.BeginHorizontal ();
+		GUILayout.Label ("Algo : " + algo.ToString () + "\nKernelSize : " + quality.ToString ());
+		GUILayout.EndHorizontal ();
+
+		GUILayout.BeginHorizontal ();
+		if (GUILayout.Button ("NAIVE")) algo = Algo.NAIVE;
+		if (GUILayout.Button ("TWO_PASS")) algo = Algo.TWO_PASS;
+		if (GUILayout.Button ("TWO_PASS_LINEAR_SAMPLING")) algo = Algo.TWO_PASS_LINEAR_SAMPLING;
+		GUILayout.EndHorizontal ();
+
+		GUILayout.BeginHorizontal ();
+		if (GUILayout.Button ("LITTLE_KERNEL")) quality = Quality.LITTLE_KERNEL;
+		if (GUILayout.Button ("MEDIUM_KERNEL")) quality = Quality.MEDIUM_KERNEL;
+		if (GUILayout.Button ("BIG_KERNEL")) quality = Quality.BIG_KERNEL;
+		GUILayout.EndHorizontal ();
+
+		GUILayout.EndVertical ();
+
+		if (GUI.changed)
+			Init ();
 	}
 }
