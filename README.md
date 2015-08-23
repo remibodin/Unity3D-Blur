@@ -23,5 +23,8 @@ and filter size :
 |:-:|:-:|:-:|
 |![LITTLE_KERNEL 3 sigma](Screen/LITTLE_KERNEL_3Sigma.PNG)|![MEDIUM_KERNEL 10 sigma](Screen/MEDIUM_KERNEL_10Sigma.PNG)|![BIG_KERNEL 25 sigma](Screen/BIG_KERNEL_25Sigma.PNG)|
 
-### Perf
+### More
+#### Kawase blur
+At this moment kawase blur have not param
+5 pass with [0, 1, 2, 2, 3] offset
 ...
