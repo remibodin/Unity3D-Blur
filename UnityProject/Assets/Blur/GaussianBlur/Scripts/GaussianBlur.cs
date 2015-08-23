@@ -61,23 +61,21 @@ public class GaussianBlur : MonoBehaviour
 	private void OnRenderImage(RenderTexture input, RenderTexture output)
 	{
 		m_Material.SetFloat ("_Sigma", sigma);
-		if (algo == Algo.TWO_PASS || algo == Algo.TWO_PASS_LINEAR_SAMPLING) 
-		{
-			RenderTexture tmpRt = RenderTexture.GetTemporary(input.width, input.height);
-			m_Material.SetVector ("_DirectionPass", new Vector4 (1, 0, 0, 0));
-			Graphics.Blit (input, tmpRt, m_Material);
-			m_Material.SetVector ("_DirectionPass", new Vector4 (0, 1, 0, 0));
-			Graphics.Blit (tmpRt, output, m_Material);
-			RenderTexture.ReleaseTemporary(tmpRt);
-		} 
-		else
-		{
-			Graphics.Blit (input, output, m_Material);
-		}
+		Graphics.Blit (input, output, m_Material);
+	}
+
+	private bool m_displayGUI = true;
+
+	private void Update()
+	{
+		if (Input.GetKeyDown (KeyCode.D))
+			m_displayGUI = !m_displayGUI;
 	}
 
 	private void OnGUI()
 	{
+		if (!m_displayGUI)
+			return;
 		GUILayout.BeginVertical ("Box");
 
 		GUILayout.BeginHorizontal ();

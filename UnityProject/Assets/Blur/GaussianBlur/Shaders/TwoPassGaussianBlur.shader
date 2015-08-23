@@ -1,9 +1,38 @@
 Shader "hidden/two_pass_gaussian_blur" 
 { 
+	CGINCLUDE
+	#include "UnityCG.cginc"
+	#pragma multi_compile LITTLE_KERNEL MEDIUM_KERNEL BIG_KERNEL
+	#include "GaussianBlur.cginc"
+	
+	uniform sampler2D _MainTex;
+	uniform float4 _MainTex_TexelSize;
+	uniform sampler2D _GrabTexture;
+	uniform float4 _GrabTexture_TexelSize;
+	uniform float _Sigma;
+	
+	float4 frag_horizontal (v2f_img i) : COLOR
+	{
+		pixel_info pinfo;
+		pinfo.tex = _MainTex;
+		pinfo.uv = i.uv;
+		pinfo.texelSize = _MainTex_TexelSize;
+		return GaussianBlur(pinfo, _Sigma, float2(1,0));
+	}
+	
+	float4 frag_vertical (v2f_img i) : COLOR
+	{				
+		pixel_info pinfo;
+		pinfo.tex = _GrabTexture;
+		pinfo.uv = i.uv;
+		pinfo.texelSize = _GrabTexture_TexelSize;
+		return GaussianBlur(pinfo, _Sigma, float2(0,1));
+	}
+	ENDCG
+	
 	Properties 
 	{ 
 		_MainTex ("Base (RGB)", 2D) = "white" {}
-		_Sigma ("Sigma", float) = 0.8
 	}
 	SubShader 
 	{
@@ -17,39 +46,19 @@ Shader "hidden/two_pass_gaussian_blur"
 		{
 			CGPROGRAM
 			#pragma target 3.0
-			#pragma multi_compile LITTLE_KERNEL MEDIUM_KERNEL BIG_KERNEL
-			
-			#include "UnityCG.cginc"
-			#include "GaussianBlur.cginc"
-			
 			#pragma vertex vert_img
-			#pragma fragment frag
-			
-			uniform sampler2D _MainTex;
-			uniform float4 _MainTex_TexelSize;
-			uniform float _Sigma;
-			uniform float4 _DirectionPass;
-
-			float4 frag (v2f_img i) : COLOR
-			{				
-				float4 o = 0;
-				float sum = 0;
-				float2 uvOffset;
-				float weight;
-				
-				for(int kernelStep = - KERNEL_SIZE / 2; kernelStep <= KERNEL_SIZE / 2; ++kernelStep)
-				{
-					uvOffset = i.uv;
-					uvOffset.x += ((kernelStep) * _MainTex_TexelSize.x * _DirectionPass.x);
-					uvOffset.y += ((kernelStep) * _MainTex_TexelSize.y * _DirectionPass.y);
-					weight = gauss(kernelStep, _Sigma);
-					o += tex2D(_MainTex, uvOffset) * weight;
-					sum += weight;
-				}
-				o *= (1.0f / sum);
-				return o;
-			}
-			
+			#pragma fragment frag_horizontal
+			ENDCG
+		}
+		
+		GrabPass{}
+		
+		Pass
+		{
+			CGPROGRAM
+			#pragma target 3.0
+			#pragma vertex vert_img
+			#pragma fragment frag_vertical
 			ENDCG
 		}
 	}
