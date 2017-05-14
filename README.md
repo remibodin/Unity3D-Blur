@@ -1,9 +1,9 @@
-#Blur for Unity3D
+# Blur for Unity3D
 
-##Gaussian Blur
+## Gaussian Blur
 Based on [this blog post](https://software.intel.com/en-us/blogs/2014/07/15/an-investigation-of-fast-real-time-gpu-based-image-blur-algorithms).
 
-###Usage
+### Usage
 
 ![Gaussian Blur Options](Screen/GaussianBlurOptions.PNG)
 
